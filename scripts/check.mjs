@@ -1,0 +1,15 @@
+import assert from 'node:assert/strict';
+import {api} from '../worker/api.mjs';
+let saved;const db={prepare(sql){return {bind(...args){this.args=args;return this;},async first(){if(sql.includes('COUNT'))return {n:0};return saved&&this.args[0]===saved.id?{id:saved.id}:null;},async run(){saved={id:this.args[0],customer:this.args[1],email:this.args[2]};return {success:true};},async all(){return {results:saved?[saved]:[]};}}}};
+const url='https://example.com/api/orders';const data={id:crypto.randomUUID(),customer:'Test customer',email:'test@example.com',service:'Business commercial — from $49',genre:'Hip-hop / Trap',date:'',brief:'Test request',website:''};
+const req=(body=data,origin='https://example.com')=>new Request(url,{method:'POST',headers:{origin,'Content-Type':'application/json'},body:JSON.stringify(body)});
+assert.equal((await api(new Request(url),{DB:db})).status,403);
+assert.equal((await api(req(data,'https://other.com'),{DB:db})).status,403);
+assert.equal((await api(req({...data,email:'invalid'}),{DB:db})).status,400);
+assert.equal((await api(req(),{DB:db})).status,201);
+assert.equal(saved.email,'test@example.com');
+assert.equal((await api(req(),{DB:db})).status,200);
+const ownerReq=new Request(url,{headers:{'oai-authenticated-user-id':'owner','oai-authenticated-user-email':'patrickbarber08@gmail.com'}});
+assert.equal((await api(ownerReq,{DB:db})).status,200);
+assert.equal((await api(req({...data,id:crypto.randomUUID()}),{DB:{prepare(){throw Error('unavailable')}}})).status,503);
+console.log('Passed validation, persistence, retry, access-control and storage-failure checks.');
