@@ -1,0 +1,15 @@
+{
+  "name": "AroundTownSound \u2014 Custom Music Studio",
+  "short_name": "AroundTownSound",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#09090c",
+  "theme_color": "#09090c",
+  "icons": [
+    {
+      "src": "assets/icon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
